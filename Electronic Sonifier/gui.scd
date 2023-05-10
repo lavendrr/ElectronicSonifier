@@ -1,13 +1,15 @@
-// CHANGE TEXT AT BOTTOM OF GUI WINDOW BEFORE SUBMIT
+// ORIGINAL LOOPING STATION CODE BY "rukano", FOUND AT https://sccode.org/1-1HT
+// MODIFIED BY RICKY MOCTEZUMA FOR USE IN THE ELECTRONIC SONIFIER INSTRUMENT
 
 var click_out = 0;
-var win = Window("Super Looper", Rect(100, 200, 800, 600)).front;
+var win = Window("Super Looper", Rect(100, 200, 800, 650)).front;
 var numbufs = 64;
 var layout = win.addFlowLayout((0@0), (0@0));
 var container = ();
 var size = (40@40);
 var metronome = ();
 var font = Font("Synchro LET", 18);
+var font2 = Font("Synchro LET", 14);
 var buffer = nil!numbufs;
 var durations = [2,4,8,16];
 var player = nil!numbufs;
@@ -26,11 +28,12 @@ TempoClock.default.tempo = 138/60;
 
 // Window
 win.view.background_(Color.white);
+// Mute function assigned to the M key (MAYBE REMOVE THIS SINCE I ADDED THE BUTTON)
 win.view.keyDownAction = { arg view, char, modifiers, unicode, keycode;
 	if(keycode == 46, {
 		~c.get(\mute, {
 			|mute|
-			if(mute == 1, {~c.set(\mute, 0); "muted".postln}, {~c.set(\mute, 1); "unmuted".postln});
+			if(mute == 1, {~c.set(\mute, 0); "Muted".postln}, {~c.set(\mute, 1); "Unmuted".postln});
 		})
 	}, {})
 };
@@ -59,7 +62,6 @@ Button(win, (120@30))
 .states_([["Reload", Color.red, Color.white]])
 .action_{ reload_func.value };
 StaticText(win, (40@10));
-
 
 StaticText(win, (100@30))
 .font_(font)
@@ -143,9 +145,95 @@ layout.nextLine;
 	};
 };
 
-StaticText(win, (800@100)).font_(font).string_("Record and play loops in different lengths as you wish.
-If you change the tempo, be sure to hit 'refresh'
-Have fun!!!");
+
+// FX MODE BUTTONS
+StaticText(win, (20@15));
+layout.nextLine;
+
+StaticText(win, (15@1));
+Button(win, (130@30))
+.font_(font2)
+.states_([["Bypass", Color.blue, Color.white]])
+.action_{ ~c.set(\mode, 0); "FX Bypass mode enabled".postln; };
+StaticText(win, (15@1));
+
+StaticText(win, (15@1));
+Button(win, (130@30))
+.font_(font2)
+.states_([["Preset Filter", Color.blue, Color.white]])
+.action_{ ~c.set(\mode, 1); "Preset Filter mode enabled".postln; };
+StaticText(win, (15@1));
+
+StaticText(win, (15@1));
+Button(win, (130@30))
+.font_(font2)
+.states_([["Variable Filter", Color.blue, Color.white]])
+.action_{ ~c.set(\mode, 2); "Variable Filter mode enabled".postln;};
+StaticText(win, (15@1));
+
+StaticText(win, (15@1));
+Button(win, (130@30))
+.font_(font2)
+.states_([["Resonz Filter", Color.blue, Color.white]])
+.action_{ ~c.set(\mode, 3); "Resonz Filter mode enabled".postln; };
+StaticText(win, (15@1));
+
+StaticText(win, (15@1));
+Button(win, (130@30))
+.font_(font2)
+.states_([["Granular", Color.blue, Color.white]])
+.action_{ ~c.set(\mode, 4); "Granular mode enabled".postln; };
+StaticText(win, (15@1));
+
+layout.nextLine;
+StaticText(win, (20@15));
+layout.nextLine;
+StaticText(win, (15@1));
+~mutebutton = Button(win, (130@30))
+.font_(font2)
+.states_([["Enable AutoTune", Color.black, Color.white], ["Disable AutoTune", Color.black, Color.green]])
+.action_{ ~c.get(\autotune, {arg val; if(val==0, {~c.set(\autotune, 1); "AutoTune enabled".postln}, {~c.set(\autotune, 0); "AutoTune disabled".postln}) }) };
+StaticText(win, (15@1));
+
+StaticText(win, (15@1));
+NumberBox(win, (100@30))
+.align_(\right)
+.font_(font)
+.step_(1)
+.scroll_step_(1)
+.clipLo_(-24)
+.clipHi_(24)
+.value_(0)
+.action_{|v| ~c.set(\note_offset, v.value)};
+StaticText(win, (10@30));
+StaticText(win, (75@30))
+.string_("AutoTune note offset");
+
+layout.nextLine;
+StaticText(win, (20@15));
+layout.nextLine;
+
+StaticText(win, (15@1));
+Button(win, (130@30))
+.font_(font2)
+.states_([["Mute input", Color.black, Color.white], ["Unmute input", Color.black, Color.red]])
+.action_{ ~c.get(\mute, {arg val; if(val==0, {~c.set(\mute, 1); "Muted input".postln}, {~c.set(\mute, 0); "Unmuted input".postln}) }) };
+StaticText(win, (15@1));
+
+StaticText(win, (15@1));
+NumberBox(win, (100@30))
+.align_(\right)
+.font_(font)
+.step_(0.1)
+.scroll_step_(0.1)
+.clipLo_(0.1)
+.clipHi_(5)
+.value_(1)
+.action_{|v| ~c.set(\amp, v.value)};
+StaticText(win, (10@30));
+StaticText(win, (75@30))
+.string_("Input amp multiplier");
+
 
 // Players
 metronome.player = Pbind(
